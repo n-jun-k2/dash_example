@@ -1,0 +1,18 @@
+FROM python:3.9-buster
+WORKDIR /tmp
+
+COPY ./docker/python/requirements.txt .
+COPY ./docker/python/import.pth .
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+        ca-certificates \
+    && pip install --upgrade pip --no-cache-dir \
+    && pip install -r requirements.txt --no-cache-dir \
+    && rm -r /tmp/requirements.txt \
+    && mv -f import.pth $(python -c 'import sys; print(sys.path)' | grep -o "[^']*site-packages")/import.pth
+
+WORKDIR /app/packages
+
+CMD [ "-c", "python front & celery -A front.celery_entry worker --loglevel=INFO >> /app/logs/celery_info.log 2>&1"]
+ENTRYPOINT [ "/bin/bash" ]

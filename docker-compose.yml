@@ -1,0 +1,28 @@
+version: "3.8"
+services:
+  dash:
+    build:
+      context: .
+      dockerfile: ./docker/python/dockerfile
+    volumes:
+      - ./packages:/app/packages
+      - ./logs/celery:/app/logs
+    ports:
+      - 80:8080
+    env_file:
+      - .env
+    depends_on:
+      - redis
+  redis:
+    image: "redis:7.0"
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}
+    volumes:
+      - ./data/redis:/data
+  pip-tools:
+    build:
+      context: .
+      dockerfile: ./tools/docker/pip-tools/dockerfile
+    volumes:
+      - ./tools/pip-tools:/tmp/src
+      - ./docker/python:/tmp/build
